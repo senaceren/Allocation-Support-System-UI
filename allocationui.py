@@ -116,3 +116,5 @@ class PageTwo(tk.Frame):
 app = AllocationApp()
 app.geometry("1280x720")
 app.mainloop()
+
+sena bu bir deneme satırı
