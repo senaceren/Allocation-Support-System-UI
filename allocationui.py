@@ -2,6 +2,16 @@ import tkinter as tk
 from tkinter import ttk
 import customtkinter as ctk
 from tkinter import filedialog
+import matplotlib
+matplotlib.use("TkAgg") #backend of matplotlib
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
+from matplotlib.figure import Figure
+import urllib
+import json
+import pandas as pd
+import numpy as np
+
+
 
 LARGE_FONT = ("Verdana",12)
 NORM_FONT = ("Verdana",10)
@@ -47,7 +57,7 @@ class AllocationApp(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, PageThree, Insights,DataUpdate):
+        for F in (StartPage, PageOne, PageTwo, PageThree, Insights, DataUpdate, Charts):
             frame = F(container,self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -125,62 +135,83 @@ class PageThree(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         label = tk.Label(self, text= "Provided Services", font=LARGE_FONT)
-        label.grid(pady=10, padx= 10)
+        label.pack(side=tk.TOP, fill=tk.BOTH, expand = True)
 
         button4 = ttk.Button(self, text="Update Data",
                             command=lambda: controller.show_frame(DataUpdate))
-        #button4.grid(row = 0, column = 0, padx = 10, pady = 10, sticky ="")
-        button4.place(x=200, y= 200)
+        button4.pack(side=tk.TOP, fill=tk.BOTH, expand = True)
 
         button5 = ttk.Button(self, text="Run Forecast Methods",
                              command=lambda: controller.show_frame(Forecast))
-        button5.place(x= 200, y= 400)
+        button5.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         button6 = ttk.Button(self, text="Update and Show Zones",
                              command=lambda: controller.show_frame(Zones))
-        button6.grid(row=1, column=0, padx=10, pady=10)
+        button6.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         button7 = ttk.Button(self, text="Search Product",
                              command=lambda: controller.show_frame(Product))
-        button7.grid(row=1, column=1, padx=10, pady=10)
+        button7.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         button8 = ttk.Button(self, text="Update and Show Insights",
                              command=lambda: controller.show_frame(Insights))
-        button8.grid(row=2, column=0, padx=10, pady=10)
+        button8.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         button9 = ttk.Button(self, text="Integer Allocation Model",
                              command=lambda: controller.show_frame(IAM))
-        button9.grid(row=2, column=1, padx=10, pady=10)
+        button9.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         button10 = ttk.Button(self, text="Log out",
                              command=lambda: controller.show_frame(StartPage))
-        button10.grid(row=3, column=0, padx=10, pady=10)
+        button10.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
 class Insights(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         label = tk.Label(self, text= "Data Analysis Insights", font=LARGE_FONT)
-        label.pack(pady=10, padx= 10)
+        label.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         chartbutton = ttk.Button(self, text="Show Zone Based Analysis Charts",
                             command=lambda: controller.show_frame(Charts))
-        chartbutton.pack()
+        chartbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         weekofsalesbutton = ttk.Button(self, text="Show Chart of Start Week of Sales",
                             command=lambda: controller.show_frame(Start))
-        weekofsalesbutton.pack()
+        weekofsalesbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         nowsoldbutton = ttk.Button(self, text="Show Chart of Number of Weeks Sold",
                             command=lambda: controller.show_frame(NoWSold))
-        nowsoldbutton.pack()
+        nowsoldbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         productclass = ttk.Button(self, text="Show Product Classification Chart",
                             command=lambda: controller.show_frame(ProdClass))
-        productclass.pack()
+        productclass.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         homepage = ttk.Button(self, text="Back to Provided Services",
-                            command=lambda: controller.show_frame(PageThree))
-        homepage.pack()
+                              command=lambda: controller.show_frame(PageThree))
+        homepage.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+class Charts(tk.Frame):
+    def __init__(self, parent, controller):
+        tk.Frame.__init__(self,parent)
+        label = tk.Label(self, text= "Zone Based Analysis Charts", font=LARGE_FONT)
+        label.pack(pady=10, padx= 10)
+
+        insights = ttk.Button(self, text="Back to Data Analysis Insights",
+                              command=lambda: controller.show_frame(Insights))
+        insights.pack()
+
+        f = Figure(figsize=(5,5), dpi=100)
+        a = f.add_subplot(111) #one by one and plot number one
+        a.plot([1,2,3,4,5,6,7,8],[5,6,1,3,4,6,8,10])
+
+        canvas = FigureCanvasTkAgg(f, self)
+        canvas.draw()
+        canvas.get_tk_widget().pack(side=tk.TOP, fill=tk.BOTH, expand = True) #grid de olabilir.
+
+        toolbar = NavigationToolbar2Tk(canvas, self)
+        toolbar.update()
+        canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand = True)
 
 class DataUpdate(tk.Frame):
     def __init__(self, parent, controller):
