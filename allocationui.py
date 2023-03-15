@@ -1,17 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
-#import customtkinter as ctk
-from tkinter import filedialog
 import matplotlib
-import pandas as pd
 
 matplotlib.use("TkAgg") #backend of matplotlib
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg, NavigationToolbar2Tk
 from matplotlib.figure import Figure
-#import urllib
-#import json
-#import pandas as pd
-#import numpy as np
 import os
 import subprocess
 import sys
@@ -20,11 +13,12 @@ from io import StringIO
 from pandastable import *
 
 
-
+#UI'deki yazı tiplerini tanımlamak için.
 LARGE_FONT = ("Verdana",12)
 NORM_FONT = ("Verdana",10)
 SMALL_FONT = ("Verdana",8)
 
+# Pop-up mesaj çıkmasını sağlayan fonksiyon. Input'u direkt çıkılması istenen mesaj.
 def popupmsg(msg):
     popup = tk.Tk()
     popup.wm_title("!")
@@ -34,18 +28,14 @@ def popupmsg(msg):
     B1.pack()
     popup.mainloop()
 
+
+# Bu fonksiyon input olarak R dosyalarının pathlerini alıp (data düzenlemesi vs için kullanılan), R dosyalarını çalıştırıp çıktılarını returnluyor.
 def run_R_script(script_path):
-    #subprocess.Popen(["Rscript", script_path], stdout=subprocess.PIPE, stderr= subprocess.PIPE, shell=True)
     process = subprocess.Popen(["Rscript", script_path], stdout=subprocess.PIPE, stderr= subprocess.PIPE)
     output, error = process.communicate()
-    #print(output.decode('utf-8'))
-    #if error:
-        #print(error.decode('utf-8'))
-    #outputwindow = tk.Tk()
-    #outputwindow.wm_title("Output")
-    #label = ttk.Label(outputwindow)
     return output.decode('utf-8')
 
+# Bu da R dosyalarından elde edilen çıktıların bir window olarak user'a sunulması adına.
 def display_output(script_path):
     outputwindow = tk.Toplevel()
     outputwindow.title("Output")
@@ -53,14 +43,7 @@ def display_output(script_path):
     output_label = ttk.Label(outputwindow,text=output)
     output_label.pack()
 
-#def display_modeloutput(epsilon):
-    #import Biobjective477 as bo
-    #outputwindow = tk.Toplevel()
-    #outputwindow.title("Output of Allocation Model")
-    #output = bo.epsilon_constraint_allocation(epsilon)
-    #output_label = ttk.Label(outputwindow, text = output)
-    #output_label.pack()
-
+# Bu yaptığımız Allocation App'in ana frame'ini oluşturuyor.
 class AllocationApp(tk.Tk):
     def __init__(self, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
@@ -72,7 +55,7 @@ class AllocationApp(tk.Tk):
         container.grid_columnconfigure(0,weight=1)
 
 
-        #Bu şekilde yukarı kısma menü için bir şeyler eklenilebilir.
+        #Bu şekilde yukarı kısma menü için bir şeyler eklenilebilir, dileğe göre customized edilebilir. Yukarıdaki menubar'ı tanımlıyor.
         menubar = tk.Menu(container)
         filemenu = tk.Menu(menubar, tearoff=0)
         filemenu.add_command(label = "Save settings",command = lambda: popupmsg("Not supported yet."))
@@ -90,8 +73,8 @@ class AllocationApp(tk.Tk):
 
         self.frames = {}
 
-        for F in (StartPage, PageOne, PageTwo, PageThree, Insights, DataUpdate, Charts, IAM, DataPreparation, Zones,
-                  Forecast, Product): #This enables to travel between windows. Any added window class should be here.
+        for F in (StartPage, PageThree, Insights, DataUpdate, Charts, IAM, DataPreparation, Zones,
+                  Forecast, Product): # Bu windowlar arasındaki geçişi sağlıyor. Eklenmiş herhangi bir class window buraya da eklenmeli.
             frame = F(container,self)
             self.frames[F] = frame
             frame.grid(row=0, column=0, sticky="nsew")
@@ -100,6 +83,9 @@ class AllocationApp(tk.Tk):
     def show_frame(self, cont):
         frame = self.frames[cont]
         frame.tkraise()
+
+#Burası şu anlık sizin tarafınızdan headless olarak kullanılacağı için tanımlı değil.
+#Sisteminize nasıl entegre edeceğinize göre login page olarak kullanılabilir ya da kaldırılabilir.
 
 class StartPage(tk.Frame):
     def __init__(self, parent, controller):
@@ -127,53 +113,18 @@ class StartPage(tk.Frame):
         button = ttk.Button(self, text="Login")
         button.pack()
 
-        #Login kısmını aktif yapıcak DB ve error mesajları kısmı eklemesi.
-
-        button1 = ttk.Button(self, text="Visit Page 1",
-                            command=lambda: controller.show_frame(PageOne))
-        button1.pack()
+        #Login kısmını aktif yapıcak DB ve error mesajları kısmı eklemesi yapılabilir buraya eğer DB ile bağlanılıp kullanılacaksa.
 
         buttonapp = ttk.Button(self, text="See Service Available",
                             command=lambda: controller.show_frame(PageThree))
         buttonapp.pack()
 
-class PageOne(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
-        label = tk.Label(self, text= "First Page", font=LARGE_FONT)
-        label.pack(pady=10, padx= 10)
-
-        button2 = ttk.Button(self, text="Back to Homepage",
-                            command=lambda: controller.show_frame(StartPage))
-        button2.pack()
-
-        button4 = ttk.Button(self, text="Visit Page 2",
-                            command=lambda: controller.show_frame(PageTwo))
-        button4.pack()
-
-class PageTwo(tk.Frame):
-    def __init__(self, parent, controller):
-        tk.Frame.__init__(self,parent)
-        label = tk.Label(self, text= "Second Page", font=LARGE_FONT)
-        label.pack(pady=10, padx= 10)
-
-        button2 = ttk.Button(self, text="Back to Homepage",
-                            command=lambda: controller.show_frame(StartPage))
-        button2.pack()
-
-        button3 = ttk.Button(self, text="Visit Page 1",
-                            command=lambda: controller.show_frame(PageOne))
-        button3.pack()
-
+# Sağlanan servisleri gösteren ana pencere. Butonlarla belirlenen diğer servislerin pencerelerine bağlantı sağlanıyor.
 class PageThree(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         label = tk.Label(self, text= "Provided Services", font=LARGE_FONT)
         label.pack(side=tk.TOP, fill=tk.BOTH, expand = True)
-
-        button4 = ttk.Button(self, text="Update Data",
-                            command=lambda: controller.show_frame(DataUpdate))
-        button4.pack(side=tk.TOP, fill=tk.BOTH, expand = True)
 
         button5 = ttk.Button(self, text="Run Forecast Methods",
                              command=lambda: controller.show_frame(Forecast))
@@ -182,10 +133,6 @@ class PageThree(tk.Frame):
         button6 = ttk.Button(self, text="Update and Show Zones",
                              command=lambda: controller.show_frame(Zones))
         button6.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
-
-        button7 = ttk.Button(self, text="Search Product",
-                             command=lambda: controller.show_frame(Product))
-        button7.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         button8 = ttk.Button(self, text="Update and Show Insights",
                              command=lambda: controller.show_frame(Insights))
@@ -199,12 +146,15 @@ class PageThree(tk.Frame):
                              command=lambda: controller.show_frame(StartPage))
         button10.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+# Bu window şu noktada disabled. Kullanmak isterseniz bu tarz bir window ile csv uzantılı dosyalar sisteme ekleyebilir (ya da direkt DB'den),
+# Sonrasında da buraya yüklenen dataları diğer pencelerde kullanabilirsiniz.
 class DataUpdate(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         label = tk.Label(self, text= "Data Update", font=LARGE_FONT)
         label.pack(pady=10, padx= 10)
 
+        # Dosya yüklemek için olan fonksiyon. Bilgisayardan direkt dosya yüklemek için.
         def browseFiles():
             filename = filedialog.askopenfilename(initialdir="/", title="Select a File",filetypes=(("Text files","*.txt*"),("all files","*.*")))
 
@@ -223,6 +173,9 @@ class DataUpdate(tk.Frame):
                             command=lambda: controller.show_frame(PageThree))
         homepage.pack()
 
+
+#Forecast penceresi. Bu noktada forecastleri uygulamak için zone bazında butonlar bulunmakta.
+#Gösterim için şu noktada zone2 için olan buton çalışmakta.
 class Forecast(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -257,6 +210,7 @@ class Forecast(tk.Frame):
                             command=lambda: controller.show_frame(PageThree))
         services.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+    #Forecast doyasının durumlarını kontrol eden, çalışmakta olan windowu (aşağıda tanımlı) kontrol eden fonksiyon.
     def run_forecast(self):
         running_window = RunningWindowForecast(self)
         running_window.grab_set()
@@ -266,6 +220,7 @@ class Forecast(tk.Frame):
 
         self.check_model_thread(model_thread, running_window)
 
+    #Forecast dosyasını çalışmak için olan fonskiyon. Forecast python dosyası import ediliyor. İstenirse path şeklinde aşağıdaki gibi de tanımlanabilir.
     def runforecast_thread(self):
         import forecast_zone2 as fc2
         #path_to_gurobipy = "C:/Users/PC/PycharmProjects/pythonProject23/venv/Lib/site-packages/gurobipy"
@@ -273,9 +228,10 @@ class Forecast(tk.Frame):
         result = fc2.forecast_zone2()
         return result
 
+    # Checking if the model is ended or still running every 100ms.
     def check_model_thread(self,model_thread, running_window):
         if model_thread.is_alive():
-            self.after(100, lambda: self.check_model_thread(model_thread, running_window)) #checking if the model is ended or still running every 100ms.
+            self.after(100, lambda: self.check_model_thread(model_thread, running_window))
         else:
             #Model thread has finished, so close the "running" pop-up window and display the solution.
             running_window.destroy()
@@ -290,7 +246,7 @@ class RunningWindowForecast(tk.Toplevel): #Pop-up window that displays the state
         self.label = tk.Label(self, text="The program is currently running. Please wait.")
         self.label.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-class SolutionWindowForecast(tk.Toplevel): #burdaki çıkan ekrandan kaydedilebiliyor ama csv değil pickle diye bişi?
+class SolutionWindowForecast(tk.Toplevel): #Çalışması bittikten sonra sonuçları gösteren pencere.
     def __init__(self, parent, result):
         super().__init__(parent)
         self.title("Outputs of Forecasting Methods")
@@ -305,6 +261,7 @@ class SolutionWindowForecast(tk.Toplevel): #burdaki çıkan ekrandan kaydedilebi
 
         self.table.show(self)
 
+#Bu window şu noktada disabled. Kullanılmak isteniyorsa cluster algoritması yerleştirilip user'a açık bir şekilde görüntülenebilir.
 class Zones(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -323,29 +280,7 @@ class Zones(tk.Frame):
                               command=lambda: controller.show_frame(PageThree))
         services.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-    def run_script(self):
-        running_window = RunningWindow(self)
-        running_window.grab_set()
-
-        model_thread = threading.Thread(target=self.runmodel_thread)
-        model_thread.start()
-
-        self.check_model_thread(model_thread, running_window)
-
-    def runmodel_thread(self):
-        path_to_gurobipy = "C:/Users/PC/PycharmProjects/pythonProject23/venv/Lib/site-packages/gurobipy" #showing the path to the gurobipy in order to see the path that used in ClusterModel.py
-        os.environ["PYTHONPATH"] = path_to_gurobipy #setting the environment.
-        subprocess.run(["python", "ClusterModel.py"], stdout=subprocess.PIPE, stderr=subprocess.PIPE) #running the code.
-
-    def check_model_thread(self,model_thread, running_window):
-        if model_thread.is_alive():
-            self.after(100, lambda: self.check_model_thread(model_thread, running_window)) #checking if the model is ended or still running every 100ms.
-        else:
-            # Model thread has finished, so close the "running" pop-up window and display the solution
-            running_window.destroy()
-            solution_window = SolutionWindow(self)
-            solution_window.grab_set()
-
+#Bu pencere şu an disabled. İsteğe göre bu window üzerinden ProductID'ler ile arama yapılabilecek şekilde düzenleme yapılabilir.
 class Product(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -364,18 +299,18 @@ class Product(tk.Frame):
                               command=lambda: controller.show_frame(PageThree))
         skuid.pack()
 
-        #buradaki forecast data, start of week sales vs searched product için mi? Öyleyse product id seçildikten
-        #sonraki page'de olacak o kısımlar. Şu noktada eksik.
-
         services = ttk.Button(self, text="Back to Provided Services",
                             command=lambda: controller.show_frame(PageThree))
         services.pack()
 
+#Bu noktada bu window disabled. İsteğe göre, belirlenen data insightlarını user'a sucacak şekilde düzenlenilebilir.
 class Insights(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
         label = tk.Label(self, text= "Data Analysis Insights", font=LARGE_FONT)
         label.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+
+        #Datayı forecast için hazırlayan R dosyasının çalışımı (isteğe göre enabled edilebilir).
 
         #def R_prepareforML():
             #subprocess.call(["Rscript", "22_Oplog.R"], shell= True)
@@ -386,6 +321,7 @@ class Insights(tk.Frame):
             #b1 = ttk.Button(popup, text="Okay", command = popup.destroy)
             #b1.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+        #Datayı düzenleyen R dosyasının çalışımı, isteğe göre enabled edilebilir.
         #def R_datamanipulation():
             #subprocess.call(['Rscript', "11_Oplog.R"], shell= True)
             #popup = tk.Tk()
@@ -405,17 +341,17 @@ class Insights(tk.Frame):
                             command=lambda: controller.show_frame(Charts))
         chartbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        weekofsalesbutton = ttk.Button(self, text="Show Chart of Start Week of Sales",
-                            command=lambda: controller.show_frame(Start))
-        weekofsalesbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        #weekofsalesbutton = ttk.Button(self, text="Show Chart of Start Week of Sales",
+                            #command=lambda: controller.show_frame(Start))
+        #weekofsalesbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        nowsoldbutton = ttk.Button(self, text="Show Chart of Number of Weeks Sold",
-                            command=lambda: controller.show_frame(NoWSold))
-        nowsoldbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        #nowsoldbutton = ttk.Button(self, text="Show Chart of Number of Weeks Sold",
+                            #command=lambda: controller.show_frame(NoWSold))
+        #nowsoldbutton.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-        productclass = ttk.Button(self, text="Show Product Classification Chart",
-                            command=lambda: controller.show_frame(ProdClass))
-        productclass.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
+        #productclass = ttk.Button(self, text="Show Product Classification Chart",
+                            #command=lambda: controller.show_frame(ProdClass))
+        #productclass.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
         #manipulatedata = ttk.Button(self, text="Adjust Address and Sales Excel Files",
                             #command=R_datamanipulation)
@@ -425,6 +361,8 @@ class Insights(tk.Frame):
                               command=lambda: controller.show_frame(PageThree))
         homepage.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
+#Bu pencere şu an disabled. Burada, sizden gelecek feedback'e göre, grafik olarak gösterilmesi istenen plotlar display edilebilir.
+#Alttaki plot sadece örnek oluşturmak adına bir gösterim.
 class Charts(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -448,6 +386,7 @@ class Charts(tk.Frame):
         toolbar.update()
         canvas._tkcanvas.pack(side=tk.TOP, fill=tk.BOTH, expand = True)
 
+# Bu window dataları düzenlemek adına olan R dosyasını çalıştırıyor.
 class DataPreparation(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -466,7 +405,7 @@ class DataPreparation(tk.Frame):
                               command=lambda: display_output("C:/Users/PC/PycharmProjects/pythonProject25/11_Oplog.R"))
         runRcode.pack(side=tk.TOP, fill=tk.BOTH, expand=True)
 
-
+# Bu pencerede integer allocation model çalışıyor. Dosyanın okunması ve çıktılarının alınması evreleri forecast ile aynı şekilde design edilmiş durumdan.
 class IAM(tk.Frame):
     def __init__(self, parent, controller):
         tk.Frame.__init__(self,parent)
@@ -489,6 +428,7 @@ class IAM(tk.Frame):
 
         self.check_model_thread(model_thread, running_window)
 
+    #Burada gurobi için path tanımlanmış durumda.
     def runmodel_thread(self):
         import AllocationModel as iam
         path_to_gurobipy = "C:/Users/PC/PycharmProjects/pythonProject23/venv/Lib/site-packages/gurobipy"
@@ -531,6 +471,5 @@ class SolutionWindowIAM(tk.Toplevel): #burdaki çıkan ekrandan kaydedilebiliyor
 
 
 app = AllocationApp()
-#app.geometry("1280x720")
 app.geometry("1000x500")
 app.mainloop()
